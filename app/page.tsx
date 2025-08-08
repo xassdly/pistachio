@@ -2,6 +2,7 @@
 
 import Sidebar from "@/components/Sidebar";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [promptText, setPromptText] = useState('');
@@ -27,25 +28,25 @@ export default function Home() {
     setMessages(prev => [...prev, {role: 'user', content: promptText}]);
     setPromptText('');
 
-    // try {
-    //   const res = await fetch("/api/chat", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       'HTTP-Referer': 'http://localhost:3000'
-    //     },
-    //     body: JSON.stringify({ prompt: promptText }),
-    //   });
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          'HTTP-Referer': 'http://localhost:3000'
+        },
+        body: JSON.stringify({ prompt: promptText }),
+      });
 
-    //   const data = await res.json();
-    //   console.log(data);
-    //   const aiMessage = data.choices && data.choices[0]?.message?.content;
-    //   setMessages(prev => [...prev, {role: 'assistant', content: aiMessage}]);
+      const data = await res.json();
+      console.log(data);
+      const aiMessage = data.choices && data.choices[0]?.message?.content;
+      setMessages(prev => [...prev, {role: 'assistant', content: aiMessage}]);
 
-    //   console.log("ai response:", aiMessage);
-    // } catch (error) {
-    //   console.log("API Error:", error);
-    // }
+      console.log("ai response:", aiMessage);
+    } catch (error) {
+      console.log("API Error:", error);
+    }
 
     
   };
@@ -57,11 +58,20 @@ export default function Home() {
   }, [messages]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleButtonSend();
-      }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleButtonSend();
     }
+  }
+  
+
+  const router = useRouter();
+  const handleButtonLogin = () => {
+    router.push('/login');
+  }
+  const handleButtonSignup = () => {
+    router.push('/signup');
+  }
 
   return (
     <div className="flex h-screen">
@@ -70,14 +80,16 @@ export default function Home() {
         
         {/*  HEADER  */}
         <header className="w-full flex justify-between pt-4 p-7 shadow-md">
-          <div className="text-2xl font-main text-pistachio-500">
+          <div className="text-2xl font-main text-pistachio-500 cursor-pointer">
             Pistach <span className="text-white bg-pistachio-500 rounded-xl pl-2 pr-2">io</span>
           </div>
           <div>
-            <button className="text-l font-main text-white bg-pistachio-500 p-1 px-4 rounded-full hover:opacity-85 cursor-pointer">
+            <button className="text-l font-main text-white bg-pistachio-500 p-1 px-4 rounded-full hover:opacity-85 cursor-pointer"
+              onClick={handleButtonLogin}>
               Log In
             </button>
-            <button className="text-l font-main text-text-300 p-1 px-4 border border-textlite-100 rounded-full ml-3 hover:bg-gray-100 cursor-pointer">
+            <button className="text-l font-main text-text-300 p-1 px-4 border border-textlite-100 rounded-full ml-3 hover:bg-gray-100 cursor-pointer"
+              onClick={handleButtonSignup}>
               Sign Up
             </button>
           </div>
@@ -88,8 +100,8 @@ export default function Home() {
           <div ref={messagesEndRef} className="max-w-[700px] w-full z-30 flex justify-end-safe flex-col overflow-auto bottom-50" 
             style={{
             scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-    }}>
+            msOverflowStyle: 'none',}}>
+
             {messages.map((mess, index) => (
               <p key={index} className={`p-2 pl-4 pr-4 text-white w-fit max-w-3/5 rounded-2xl mb-2 
                 ${mess.role === 'user' ? 'bg-pistachio-500 ml-auto' : 'bg-text-300 mr-auto'}`}>{mess.content}</p>
@@ -104,7 +116,8 @@ export default function Home() {
             `}> 
 
             {/* Title */}
-            <h3 className={`font-main text-text-300 text-4xl transition-opacity duration-500 ${hasMessages ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            <h3 className={`font-main text-text-300 text-4xl transition-all duration-500 ease-in-out overflow-hidden 
+              ${hasMessages ? 'opacity-0 pointer-events-none max-h-0' : 'opacity-100 max-h-20'}`}>
               How can I help you
             </h3>
 

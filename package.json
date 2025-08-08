@@ -10,6 +10,8 @@
     "debug:tailwind": "tailwindcss -i ./styles/globals.css -o ./out.css --config ./tailwind.config.js --watch"
   },
   "dependencies": {
+    "@prisma/client": "^6.13.0",
+    "bcryptjs": "^3.0.2",
     "next": "15.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0"
@@ -21,6 +23,7 @@
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
+    "prisma": "^6.13.0",
     "tailwindcss": "^4.1.11",
     "typescript": "^5"
   }
