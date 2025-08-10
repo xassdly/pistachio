@@ -1,11 +1,62 @@
 'use client';
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function Login () {
     const router = useRouter();
+    const [emailText, setEmailText] = useState('');
+    const [passwordText, setPasswordText] = useState('');
 
-    
+    const [loading, setLoading] = useState(false);
+
+    const loginUserByEmail = async (email: string, password: string) => {
+        try {
+            const res = await fetch('/api/user/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', 
+                }, 
+                body: JSON.stringify({
+                    email: email.trim().toLowerCase(),
+                    password: password,
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                console.error("API error", data);
+                return false;
+            }
+            console.log("User logged in ", data);
+            return true;
+        } catch (error) {
+            console.error("fetch error: ", error);
+            return false;
+        }
+    };
+
+    const handleButtonLogin = async () => {
+        const emailIsEmpty = emailText.trim() === '';
+        const emailIsInvalid = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailText);
+
+        const passwordIsEmpty = passwordText.trim() === '';
+        const passwordIsTooShort = passwordText.trim().length < 8;
+
+        if (emailIsEmpty || emailIsInvalid || passwordIsEmpty || passwordIsTooShort) {
+            setEmailText('');
+            setPasswordText('');
+            // showError();
+            return;
+        }
+
+        setLoading(true);
+        const success = await loginUserByEmail(emailText, passwordText);
+        setLoading(false);
+
+        if (success) {
+            router.push('/');
+        }
+    }
 
     return (
         <div className="w-full h-screen flex flex-col">
@@ -18,9 +69,12 @@ export default function Login () {
             <div className="w-full flex-1 pb-5 pt-16">
                 <div className="max-w-md w-full mt-0 m-auto h-full flex flex-col gap-1">
                     <h3 className="text-center text-3xl text-text-300 font-main mb-6">Log In</h3>
-                    <input className="bg-bglite-100 p-3.5 rounded-2xl outline-0 focus:placeholder-transparent mb-1" type="email" placeholder="Email"/>
-                    <input className="bg-bglite-100 p-3.5 rounded-2xl outline-0 focus:placeholder-transparent mb-2.5" type="password" placeholder="Password"/>
-                    <button className="bg-pistachio-500 text-white rounded-2xl p-3.5 hover:opacity-90 cursor-pointer mb-4">Log In</button>
+                    <input className="bg-bglite-100 p-3.5 rounded-2xl outline-0 focus:placeholder-transparent mb-1" 
+                        type="email" placeholder="Email" value={emailText} onChange={e => setEmailText(e.target.value)}/>
+                    <input className="bg-bglite-100 p-3.5 rounded-2xl outline-0 focus:placeholder-transparent mb-2.5" 
+                        type="password" placeholder="Password" value={passwordText} onChange={e => setPasswordText(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleButtonLogin()}/>
+                    <button className="bg-pistachio-500 text-white rounded-2xl p-3.5 hover:opacity-90 cursor-pointer mb-4" onClick={handleButtonLogin}>Log In</button>
                     <div className="flex justify-center text-[#9F9FF8] text-sm gap-6 mb-4">
                         <button className="cursor-pointer hover:text-[#4E4ED8]" onClick={() => router.push('/signup')}>Sign Up</button>
                         <button className="cursor-pointer hover:text-[#4E4ED8]">Forgot Password</button>

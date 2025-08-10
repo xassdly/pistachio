@@ -16,6 +16,7 @@ model User {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
+  sessions      Session[]
   chats         Chat[]
 }
 
@@ -40,4 +41,15 @@ model Message {
 enum Role {
   USER
   ASSISTANT
+}
+
+model Session {
+  id         Int @id @default(autoincrement())
+  userId     Int
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+
+  @@index([userId])
+  @@index([expiresAt])
 }

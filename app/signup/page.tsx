@@ -23,22 +23,20 @@ export default function Signup () {
             });
             const data = await res.json();
             if (!res.ok) {
-                console.error('❌ API error:', data);
+                console.error('API error:', data);
                 return false;
             }
-            console.log('✅ User created:', data);
+            console.log('User created:', data);
             return true;
 
         } catch (err) {
-            console.error('❌ Fetch error:', err);
+            console.error('Fetch error:', err);
             return false;
         }
     };
 
 
     const handleButtonSignup = async () => {
-        if (emailText.trim() === '' || passwordText.trim() === '') return;
-        
         const emailIsEmpty = emailText.trim() === '';
         const emailIsInvalid = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailText);
 

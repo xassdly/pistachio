@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
   const [promptText, setPromptText] = useState('');
   const [hasMessages, setHasMessages] = useState(false);
 
@@ -18,6 +19,14 @@ export default function Home() {
       textarea.style.height = textarea.scrollHeight + 'px';
     }
   };
+
+  const handleButtonLogout = async () => {
+    await fetch('/api/user/logout', {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => {});
+    router.replace('/login');
+  }
 
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string}[]>([]);
 
@@ -63,15 +72,6 @@ export default function Home() {
       handleButtonSend();
     }
   }
-  
-
-  const router = useRouter();
-  const handleButtonLogin = () => {
-    router.push('/login');
-  }
-  const handleButtonSignup = () => {
-    router.push('/signup');
-  }
 
   return (
     <div className="flex h-screen">
@@ -85,12 +85,8 @@ export default function Home() {
           </div>
           <div>
             <button className="text-l font-main text-white bg-pistachio-500 p-1 px-4 rounded-full hover:opacity-85 cursor-pointer"
-              onClick={handleButtonLogin}>
-              Log In
-            </button>
-            <button className="text-l font-main text-text-300 p-1 px-4 border border-textlite-100 rounded-full ml-3 hover:bg-gray-100 cursor-pointer"
-              onClick={handleButtonSignup}>
-              Sign Up
+              onClick={handleButtonLogout}>
+              Log Out
             </button>
           </div>
         </header>
