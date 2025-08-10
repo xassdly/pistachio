@@ -1,6 +1,6 @@
 "use client";
 
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "@/app/components/Sidebar";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -8,6 +8,8 @@ export default function Home() {
   const router = useRouter();
   const [promptText, setPromptText] = useState('');
   const [hasMessages, setHasMessages] = useState(false);
+
+  const [loading, setLoading] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -33,7 +35,11 @@ export default function Home() {
   const handleButtonSend = async () => {
     if (!promptText.trim()) return;
 
+    setLoading(true);
     setHasMessages(true);
+
+    const updatedMessageUser: { role: 'user' | 'assistant'; content: string}[] = [...messages, { role: 'user' as const, content: promptText }];
+
     setMessages(prev => [...prev, {role: 'user', content: promptText}]);
     setPromptText('');
 
@@ -48,16 +54,26 @@ export default function Home() {
       });
 
       const data = await res.json();
-      console.log(data);
-      const aiMessage = data.choices && data.choices[0]?.message?.content;
-      setMessages(prev => [...prev, {role: 'assistant', content: aiMessage}]);
+      const aiMessage: string = data.choices[0]?.message?.content ?? "";
+
+      const updatedMessages: { role: 'user' | 'assistant'; content: string}[] = [...updatedMessageUser, { role: 'assistant' as const, content: aiMessage}];
+      
+      setMessages(updatedMessages);
+      setLoading(false);
+
+      await fetch('/api/chats/save', {
+        method: 'POST',
+        headers: {'Content-Type': "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ messages: updatedMessages }),
+      })
+      window.dispatchEvent(new Event("chats:changed"));
 
       console.log("ai response:", aiMessage);
     } catch (error) {
       console.log("API Error:", error);
+      setLoading(false);
     }
-
-    
   };
 
   useEffect(() => {
@@ -75,7 +91,7 @@ export default function Home() {
 
   return (
     <div className="flex h-screen">
-      <Sidebar />
+      <Sidebar setMessages={setMessages} setHasMessages={setHasMessages}/>
       <div className="w-full flex flex-col relative">
         
         {/*  HEADER  */}
@@ -114,7 +130,7 @@ export default function Home() {
             {/* Title */}
             <h3 className={`font-main text-text-300 text-4xl transition-all duration-500 ease-in-out overflow-hidden 
               ${hasMessages ? 'opacity-0 pointer-events-none max-h-0' : 'opacity-100 max-h-20'}`}>
-              How can I help you
+              How can I help you?
             </h3>
 
             {/* Textarea */}
@@ -133,8 +149,9 @@ export default function Home() {
               <button
                 className="bg-pistachio-500 p-2 rounded-full hover:opacity-85 cursor-pointer mt-5"
                 onClick={handleButtonSend}
+                disabled={loading}
               >
-                <img className="w-5 h-5" src="/icons/sendIcon.svg" alt="send button icon" />
+                <img className={`w-5 h-5 ${loading && 'animate-spin'}`} src={loading ? '/icons/loading.svg' : '/icons/sendIcon.svg'} alt="send button icon" />
               </button>
             </div>
           </div>

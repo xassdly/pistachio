@@ -7,6 +7,7 @@ export default function Login () {
     const router = useRouter();
     const [emailText, setEmailText] = useState('');
     const [passwordText, setPasswordText] = useState('');
+    const [isError, setIsError] = useState(false);
 
     const [loading, setLoading] = useState(false);
 
@@ -45,7 +46,8 @@ export default function Login () {
         if (emailIsEmpty || emailIsInvalid || passwordIsEmpty || passwordIsTooShort) {
             setEmailText('');
             setPasswordText('');
-            // showError();
+            setIsError(true);
+            setTimeout(() => setIsError(false), 4000);
             return;
         }
 
@@ -55,6 +57,9 @@ export default function Login () {
 
         if (success) {
             router.push('/');
+        } else {
+            setIsError(true);
+            setTimeout(() => setIsError(false), 4000);
         }
     }
 
@@ -69,12 +74,25 @@ export default function Login () {
             <div className="w-full flex-1 pb-5 pt-16">
                 <div className="max-w-md w-full mt-0 m-auto h-full flex flex-col gap-1">
                     <h3 className="text-center text-3xl text-text-300 font-main mb-6">Log In</h3>
-                    <input className="bg-bglite-100 p-3.5 rounded-2xl outline-0 focus:placeholder-transparent mb-1" 
+                    <input className={`bg-bglite-100 p-3.5 rounded-2xl outline-0 focus:placeholder-transparent mb-1`} 
                         type="email" placeholder="Email" value={emailText} onChange={e => setEmailText(e.target.value)}/>
-                    <input className="bg-bglite-100 p-3.5 rounded-2xl outline-0 focus:placeholder-transparent mb-2.5" 
+                    <input className={`bg-bglite-100 p-3.5 rounded-2xl outline-0 focus:placeholder-transparent mb-2.5`}
                         type="password" placeholder="Password" value={passwordText} onChange={e => setPasswordText(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleButtonLogin()}/>
-                    <button className="bg-pistachio-500 text-white rounded-2xl p-3.5 hover:opacity-90 cursor-pointer mb-4" onClick={handleButtonLogin}>Log In</button>
+                    {isError && (
+                        <p className="text-red-600 text-[14px] flex justify-center">Invalid Email or Password</p>
+                    )}    
+                    <button
+                        className="bg-pistachio-500 text-white rounded-2xl h-13 hover:opacity-90 cursor-pointer mb-4 flex items-center justify-center min-w-[100px]"
+                        onClick={handleButtonLogin}
+                        disabled={loading}
+                        >
+                        {loading ? (
+                            <img className="w-5 h-5 animate-spin" src="/icons/loading.svg" alt="loading icon" />
+                        ) : (
+                            'Log In'
+                        )}
+                    </button>
                     <div className="flex justify-center text-[#9F9FF8] text-sm gap-6 mb-4">
                         <button className="cursor-pointer hover:text-[#4E4ED8]" onClick={() => router.push('/signup')}>Sign Up</button>
                         <button className="cursor-pointer hover:text-[#4E4ED8]">Forgot Password</button>
@@ -99,7 +117,7 @@ export default function Login () {
                         <button className="border-l border-[#CCCCCC] pl-4 cursor-pointer">Privacy Policy</button>
                     </div>
 
-                    <div className="text-sm text-[#999999] flex justify-center mt-auto">2025 Pistachio</div>
+                    <div className="text-sm text-[#999999] flex justify-center mt-auto">© 2025 Pistachio</div>
                 </div>
             </div>
 

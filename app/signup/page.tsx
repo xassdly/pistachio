@@ -7,7 +7,8 @@ export default function Signup () {
     const router = useRouter();
     const [emailText, setEmailText] = useState('');
     const [passwordText, setPasswordText] = useState('');
-
+    const [loading, setLoading] = useState(false);
+    const [isError, setIsError] = useState(false);
 
     const createUserByEmail = async (email: string, password: string) => {
         try {
@@ -46,16 +47,22 @@ export default function Signup () {
         if (emailIsEmpty || emailIsInvalid || passwordIsEmpty || passwordIsTooShort) {
             setEmailText('');
             setPasswordText('');
-            // showError();
+            setIsError(true);
+            setTimeout(() => setIsError(false), 4000);
             return;
         }
-        
+        setLoading(true);
         const success = await createUserByEmail(emailText, passwordText);
+        setLoading(false);
         if (success) router.push('/');
+        else {
+            setIsError(true);
+            setTimeout(() => setIsError(false), 4000);
+        }
     }
 
     return (
-        <div>
+        <div className="w-full h-screen flex flex-col">
             <header className="w-full flex justify-between pt-4 p-7 shadow-md">
                 <div onClick={() => router.push('/')} className="text-2xl font-main text-pistachio-500 cursor-pointer">
                     Pistach <span className="text-white bg-pistachio-500 rounded-xl pl-2 pr-2">io</span>
@@ -70,9 +77,21 @@ export default function Signup () {
                         value={emailText} onChange={e => setEmailText(e.target.value)}/>
                     <input className="bg-bglite-100 p-3.5 rounded-2xl outline-0 focus:placeholder-transparent mb-2.5" type="password" placeholder="Password"
                         value={passwordText} onChange={e => setPasswordText(e.target.value)}/>
+                    {isError && (
+                        <p className="text-red-600 text-[14px] flex justify-center">Invalid Email or Password</p>
+                    )}   
+                    <button
+                        className="bg-pistachio-500 text-white rounded-2xl h-13 hover:opacity-90 cursor-pointer mb-4 flex items-center justify-center min-w-[100px]"
+                        onClick={handleButtonSignup}
+                        disabled={loading}
+                        >
+                        {loading ? (
+                            <img className="w-5 h-5 animate-spin" src="/icons/loading.svg" alt="loading icon" />
+                        ) : (
+                            'Sign Up'
+                        )}
+                    </button>
 
-                    <button className="bg-pistachio-500 text-white rounded-2xl p-3.5 hover:opacity-90 cursor-pointer mb-4"
-                        onClick={handleButtonSignup}>Sign Up</button>
                     <div className="flex justify-center text-[#9F9FF8] text-sm gap-6 mb-4">
                         <button className="cursor-pointer hover:text-[#4E4ED8]" onClick={() => router.push('/login')}>Log In</button>
                         <button className="cursor-pointer hover:text-[#4E4ED8]">Contact Us</button>
@@ -90,7 +109,7 @@ export default function Signup () {
                         <button className="border-l border-[#CCCCCC] pl-4 cursor-pointer">Privacy Policy</button>
                     </div>
 
-                    <div className="text-sm text-[#999999] flex justify-center mt-auto">2025 Pistachio</div>
+                    <div className="text-sm text-[#999999] flex justify-center mt-auto">© 2025 Pistachio</div>
                 </div>
             </div>
         </div>
