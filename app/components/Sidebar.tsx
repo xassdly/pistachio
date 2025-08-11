@@ -7,12 +7,13 @@ type Message = { role: 'user' | 'assistant'; content: string };
 
 type SidebarProps = {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
-  setHasMessages: React.Dispatch<React.SetStateAction<boolean>>;
+  setHasMessages: (value: boolean) => void;
+  setActiveChatId: (value: number | null) => void;
+  activeChatId: number | null;
 };
 
-export default function Sidebar ({ setMessages, setHasMessages }: SidebarProps) {
+export default function Sidebar ({ setMessages, setHasMessages, setActiveChatId, activeChatId }: SidebarProps) {
     const [chats, setChats] = useState<ChatResponse[]>([]);
-    const [activeChatId, setActiveChatId] = useState<number | null>(null);
 
     const refetch = () => 
         fetch("/api/chats", { credentials: "include"})
@@ -40,6 +41,29 @@ export default function Sidebar ({ setMessages, setHasMessages }: SidebarProps) 
         }
     };
 
+    const handleNewChatButton = () => {
+        setActiveChatId(null);
+        setMessages([]);
+        setHasMessages(false);
+    }
+
+    const handleRemoveChat = async (chatId: number) => {
+        setChats(prev => prev.filter(c => c.id !== chatId));
+        handleNewChatButton();
+
+        try {
+            const res = await fetch(`/api/chats/remove/${chatId}`, { method: 'DELETE', credentials: 'include' });
+            if (!res.ok) {
+                await refetch();
+                return;
+            }
+            await refetch();
+
+        } catch {
+            await refetch();
+        }
+    }
+
     return (
         <div className="w-80 h-full bg-gray-50 p-4">
             <header className="flex justify-between">
@@ -50,12 +74,21 @@ export default function Sidebar ({ setMessages, setHasMessages }: SidebarProps) 
             </header>
             <div className="mt-9 mb-11 h-11 flex items-center border-2 border-pistachio-500 rounded-full">
                 <p className="ml-auto text-text-300">Chats</p>
-                <button className="bg-pistachio-500 ml-auto p-5 rounded-r-full text-white h-full flex items-center gap-3 cursor-pointer hover:opacity-85">New Chat <img className="w-4 h-4" src="/icons/chatIcon.svg" alt="new chat icon" /></button>
+                <button className="bg-pistachio-500 ml-auto p-5 rounded-r-full text-white h-full flex items-center gap-3 cursor-pointer hover:opacity-85"
+                    onClick={handleNewChatButton}>New Chat <img className="w-4 h-4" src="/icons/chatIcon.svg" alt="new chat icon" /></button>
             </div>
-            <div className="">
+            <div>
                 {chats.length > 0 ? (
                     chats.map((chat) => (
-                        <div onClick={() => handleChangeChat(chat.id)} className={`text-text-300 cursor-pointer hover:bg-gray-200 rounded-full p-2 pl-3 ${activeChatId === chat.id && 'font-bold'}`} key={chat.id}>Chat #{chat.id}</div>
+                        <div onClick={() => handleChangeChat(chat.id)} 
+                            className={`group relative text-text-300 cursor-pointer hover:bg-gray-200 rounded-full p-2 pl-3 flex justify-between items-center
+                            ${activeChatId === chat.id ? 'font-bold' : ''}`} key={chat.id}>
+                                <span>Chat #{chat.id}</span>
+                                <button onClick={(e) => { e.stopPropagation(); handleRemoveChat(chat.id) }} 
+                                    className="opacity-0 pointer-events-none cursor-pointer p-1.5 rounded-full group-hover:opacity-100 group-hover:pointer-events-auto hover:bg-gray-300">
+                                        <img className="w-4" src="/icons/removeChat.svg" alt="remove chat icon" />
+                                </button>
+                        </div>
                     ))
                 ) : (
                     <p className="flex justify-center text-text-300">Create your first chat</p>

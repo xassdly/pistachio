@@ -103,13 +103,10 @@ export default function Login () {
                     </div>
 
                     <button className="border border-[#ECECEC] p-3.5 rounded-2xl cursor-pointer hover:bg-gray-50 mb-1 flex justify-center items-center gap-2">
-                        <img src="/icons/googleIcon.svg" alt="Google icon" className="w-[20px] h-[20px]"/>Log in with Google
-                    </button>
-                    <button className="border border-[#ECECEC] p-3.5 rounded-2xl cursor-pointer hover:bg-gray-50 mb-1 flex justify-center items-center gap-2">
-                        <img src="/icons/microsoftIcon.svg" alt="Microsoft icon" className="w-[20px] h-[20px]"/>Log in with Microsoft
+                        <img src="/icons/googleIcon.svg" alt="Google icon" className="w-[20px] h-[20px]"/>Continue with Google
                     </button>
                     <button className="border border-[#ECECEC] p-3.5 rounded-2xl cursor-pointer hover:bg-gray-50 mb-5 flex justify-center items-center gap-2">
-                        <img src="/icons/phoneIcon.svg" alt="phone icon" className="w-[20px] h-[20px]"/>Log in with Phone
+                        <img src="/icons/microsoftIcon.svg" alt="Microsoft icon" className="w-[20px] h-[20px]"/>Continue with Microsoft
                     </button>
 
                     <div className="flex justify-center text-[#999999]">

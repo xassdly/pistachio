@@ -76,7 +76,7 @@ export default function Signup () {
                     <input className="bg-bglite-100 p-3.5 rounded-2xl outline-0 focus:placeholder-transparent mb-1" type="email" placeholder="Email"
                         value={emailText} onChange={e => setEmailText(e.target.value)}/>
                     <input className="bg-bglite-100 p-3.5 rounded-2xl outline-0 focus:placeholder-transparent mb-2.5" type="password" placeholder="Password"
-                        value={passwordText} onChange={e => setPasswordText(e.target.value)}/>
+                        value={passwordText} onChange={e => setPasswordText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleButtonSignup()}/>
                     {isError && (
                         <p className="text-red-600 text-[14px] flex justify-center">Invalid Email or Password</p>
                     )}   
@@ -101,7 +101,7 @@ export default function Signup () {
                     </div>
 
                     <button className="border border-[#ECECEC] p-3.5 rounded-2xl cursor-pointer hover:bg-gray-50 mb-9 flex justify-center items-center gap-2">
-                        <img src="/icons/googleIcon.svg" alt="Google icon" className="w-[20px] h-[20px]"/>Sign Up with Google
+                        <img src="/icons/googleIcon.svg" alt="Google icon" className="w-[20px] h-[20px]"/>Continue with Google
                     </button>
 
                     <div className="flex justify-center text-[#999999]">

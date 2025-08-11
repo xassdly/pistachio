@@ -8,6 +8,7 @@ export default function Home() {
   const router = useRouter();
   const [promptText, setPromptText] = useState('');
   const [hasMessages, setHasMessages] = useState(false);
+  const [activeChatId, setActiveChatId] = useState<number | null>(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -38,40 +39,51 @@ export default function Home() {
     setLoading(true);
     setHasMessages(true);
 
-    const updatedMessageUser: { role: 'user' | 'assistant'; content: string}[] = [...messages, { role: 'user' as const, content: promptText }];
-
-    setMessages(prev => [...prev, {role: 'user', content: promptText}]);
+    const userPrompt = promptText;
+    setMessages(prev => [...prev, {role: 'user', content: userPrompt}]);
     setPromptText('');
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          'HTTP-Referer': 'http://localhost:3000'
-        },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ prompt: promptText }),
       });
 
       const data = await res.json();
       const aiMessage: string = data.choices[0]?.message?.content ?? "";
 
-      const updatedMessages: { role: 'user' | 'assistant'; content: string}[] = [...updatedMessageUser, { role: 'assistant' as const, content: aiMessage}];
+      const newPair = [
+        { role: 'user' as const, content: userPrompt },
+        { role: 'assistant' as const, content: aiMessage }
+      ];
+      const updatedMessages = [...messages, ...newPair];
       
       setMessages(updatedMessages);
       setLoading(false);
 
-      await fetch('/api/chats/save', {
+      const saveRes = await fetch('/api/chats/save', {
         method: 'POST',
         headers: {'Content-Type': "application/json" },
         credentials: "include",
-        body: JSON.stringify({ messages: updatedMessages }),
-      })
-      window.dispatchEvent(new Event("chats:changed"));
+        body: JSON.stringify({ 
+          chatId: activeChatId,
+          messages: newPair, 
+        }),
+      });
 
-      console.log("ai response:", aiMessage);
+      const saved = await saveRes.json();
+      if (!activeChatId && saved?.id) {
+        setActiveChatId(saved.id);
+        window.dispatchEvent(new Event("chats:changed"));
+      } else {
+        window.dispatchEvent(new Event("chats:changed"));
+      }
+
+
     } catch (error) {
       console.log("API Error:", error);
+    } finally {
       setLoading(false);
     }
   };
@@ -91,7 +103,11 @@ export default function Home() {
 
   return (
     <div className="flex h-screen">
-      <Sidebar setMessages={setMessages} setHasMessages={setHasMessages}/>
+      <Sidebar 
+        setMessages={setMessages} 
+        setHasMessages={setHasMessages}
+        setActiveChatId={setActiveChatId}
+        activeChatId={activeChatId}/>
       <div className="w-full flex flex-col relative">
         
         {/*  HEADER  */}
