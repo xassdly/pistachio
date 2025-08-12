@@ -33,11 +33,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const expiresAt = new Date(Date.now() + 7*24*60*60*1000);
+    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     const session = await prisma.session.create({
-      data: { userId: user.id, expiresAt },
+      data: {
+        userId: user.id,
+        expires: expires,
+        sessionToken: crypto.randomUUID(),
+      },
     });
-
     const res = NextResponse.json({ id: user.id, email: user.email });
     res.cookies.set('session', String(session.id), {
       httpOnly: true,

@@ -1,37 +1,33 @@
+// app/api/chats/save/route.ts
 import { prisma } from '@/lib/prisma';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { Role } from '@prisma/client';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
+    const user = await getCurrentUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { chatId, messages } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: 'Messages are required' }, { status: 400 });
     }
 
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get('session')?.value;
-
-    if (!sessionId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const session = await prisma.session.findUnique({
-      where: { id: Number(sessionId) },
-      include: { user: true },
-    });
-
-    if (!session || session.expiresAt < new Date()) {
-      return NextResponse.json({ error: 'Session expired' }, { status: 401 });
-    }
-
     let chat;
 
     if (chatId) {
+      const chatToUpdate = await prisma.chat.findUnique({ where: { id: chatId } });
+      if (chatToUpdate?.userId !== user.id) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
       chat = await prisma.chat.update({
-        where: { id: chatId, userId: session.userId },
+        where: { id: chatId },
         data: {
           messages: {
             create: messages.map((m: { role: 'user' | 'assistant'; content: string }) => ({
@@ -45,7 +41,7 @@ export async function POST(req: Request) {
     } else {
       chat = await prisma.chat.create({
         data: {
-          userId: session.userId,
+          userId: user.id,
           messages: {
             create: messages.map((m: { role: 'user' | 'assistant'; content: string }) => ({
               role: m.role === 'user' ? Role.USER : Role.ASSISTANT,

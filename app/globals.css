@@ -7,3 +7,5 @@
     --color-bglite-100: #F5F5F5;
     --font-main: "Itim", sans-serif;
 }
+
+.scrollbar-none::-webkit-scrollbar { display: none; }

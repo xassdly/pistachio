@@ -9,7 +9,7 @@ export async function POST() {
   if (sessionId) {
     try {
       await prisma.session.delete({
-        where: { id: Number(sessionId) },
+        where: { id: sessionId },
       });
     } catch (err) {
     }

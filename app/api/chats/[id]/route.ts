@@ -1,43 +1,41 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
+import { getCurrentUser } from "@/lib/auth";
 
-type Params = {
-  params: Promise<{ id: string }>;
-};
-
-export async function GET(_req: Request, context: Params) {
+export async function GET(req: Request) {
   try {
-    const { id } = await context.params;
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get("session")?.value;
+    const user = await getCurrentUser();
 
-    if (!sessionId) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    
+    const url = new URL(req.url);
 
-    const session = await prisma.session.findUnique({
-      where: { id: Number(sessionId) },
-      select: { userId: true, expiresAt: true },
-    });
+    const chatIdString = url.pathname.split('/').pop();
+    const chatId = Number(chatIdString);
 
-    if (!session || session.expiresAt < new Date()) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const chatId = Number(id);
-    if (isNaN(chatId)) {
+    if (!chatIdString || isNaN(chatId)) {
       return NextResponse.json({ error: "Invalid chat ID" }, { status: 400 });
     }
 
     const messages = await prisma.message.findMany({
       where: {
-        chatId,
-        chat: { userId: session.userId },
+        chatId: chatId,
+        chat: { userId: user.id },
       },
       orderBy: { createdAt: "asc" },
       select: { role: true, content: true },
     });
+
+    if (messages.length === 0) {
+      const chatExists = await prisma.chat.findFirst({
+        where: { id: chatId, userId: user.id },
+      });
+      if (!chatExists) {
+        return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+      }
+    }
 
     const formatted = messages.map((m) => ({
       role: m.role.toLowerCase() as "user" | "assistant",
@@ -47,6 +45,9 @@ export async function GET(_req: Request, context: Params) {
     return NextResponse.json(formatted);
   } catch (err) {
     console.error("Error fetching chat messages:", err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

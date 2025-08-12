@@ -1,24 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
+import { getCurrentUser } from "@/lib/auth";
 
 type Params = { params: { id: string } };
 
 export async function DELETE(_req: Request, { params }: Params) {
   try {
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get("session")?.value;
+    const user = await getCurrentUser();
 
-    if (!sessionId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = await prisma.session.findUnique({
-      where: { id: Number(sessionId) },
-      select: { userId: true, expiresAt: true },
-    });
-
-    if (!session || session.expiresAt < new Date()) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -27,19 +17,20 @@ export async function DELETE(_req: Request, { params }: Params) {
       return NextResponse.json({ error: "Invalid chat ID" }, { status: 400 });
     }
 
-    const deletedCount = await prisma.$transaction(async (tx) => {
-      await tx.message.deleteMany({
-        where: { chatId, chat: { userId: session.userId } },
-      });
-      const { count } = await tx.chat.deleteMany({
-        where: { id: chatId, userId: session.userId },
-      });
-      return count;
+    const chatToDelete = await prisma.chat.findUnique({
+        where: { id: chatId },
     });
 
-    if (deletedCount === 0) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!chatToDelete || chatToDelete.userId !== user.id) {
+        return NextResponse.json({ error: "Not found or forbidden" }, { status: 404 });
     }
+
+    await prisma.message.deleteMany({
+      where: { chatId: chatId },
+    });
+    await prisma.chat.delete({
+      where: { id: chatId },
+    });
 
     return NextResponse.json({ ok: true });
   } catch (err) {

@@ -10,10 +10,13 @@ type SidebarProps = {
   setHasMessages: (value: boolean) => void;
   setActiveChatId: (value: number | null) => void;
   activeChatId: number | null;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export default function Sidebar ({ setMessages, setHasMessages, setActiveChatId, activeChatId }: SidebarProps) {
+export default function Sidebar ({ setMessages, setHasMessages, setActiveChatId, activeChatId, isSidebarOpen, setIsSidebarOpen }: SidebarProps) {
     const [chats, setChats] = useState<ChatResponse[]>([]);
+    
 
     const refetch = () => 
         fetch("/api/chats", { credentials: "include"})
@@ -65,19 +68,26 @@ export default function Sidebar ({ setMessages, setHasMessages, setActiveChatId,
     }
 
     return (
-        <div className="w-80 h-full bg-gray-50 p-4">
-            <header className="flex justify-between">
-                <img src="/icons/logoIcon.svg" alt="logo icon" className="w-[27px] h-[27px]" />
-                <button className="cursor-pointer p-2 rounded-full hover:bg-gray-200"> 
+        <div className={`h-full bg-gray-50 transition-all z-50 max-md:fixed ${isSidebarOpen ? 'w-80 p-4 max-md:block max-md:w-64' : 'max-md:hidden w-16 pt-4 flex flex-col items-center'}`}>
+
+            {/* Header */}
+            <header className={`flex ${isSidebarOpen ? 'justify-between' : 'justify-center'}`}>
+                {isSidebarOpen && <img src="/icons/logoIcon.svg" alt="logo icon" className="w-[27px] h-[27px]" />}
+                <button className={`cursor-pointer rounded-lg hover:bg-gray-200 ${isSidebarOpen ? 'p-2' : 'p-2'}`} onClick={() => setIsSidebarOpen(prev => !prev)}> 
                     <img src="/icons/menuIcon.svg" alt="show hide menu"  className="w-[20px] h-[20px]"/>
                 </button>
             </header>
-            <div className="mt-9 mb-11 h-11 flex items-center border-2 border-pistachio-500 rounded-full">
-                <p className="ml-auto text-text-300">Chats</p>
-                <button className="bg-pistachio-500 ml-auto p-5 rounded-r-full text-white h-full flex items-center gap-3 cursor-pointer hover:opacity-85"
-                    onClick={handleNewChatButton}>New Chat <img className="w-4 h-4" src="/icons/chatIcon.svg" alt="new chat icon" /></button>
+
+            {/* Button block */}
+            <div className={`mt-9 mb-11 h-11 flex items-center rounded-full ${isSidebarOpen ? 'border-2 border-pistachio-500' : ''}`}>
+                {isSidebarOpen && <p className="ml-auto text-text-300">Chats</p>}
+                <button className={`bg-pistachio-500 ml-auto text-white flex items-center gap-3 cursor-pointer hover:opacity-85
+                    ${isSidebarOpen ? 'rounded-r-full p-5 h-full' : 'rounded-lg w-8 h-8 justify-center'}`}
+                    onClick={handleNewChatButton}>{isSidebarOpen ? 'New Chat' : ''}<img className="w-4 h-4" src="/icons/chatIcon.svg" alt="new chat icon" /></button>
             </div>
-            <div>
+
+            {/* Chats */}
+            <div className={isSidebarOpen ? 'opacity-100' : 'opacity-0'}>
                 {chats.length > 0 ? (
                     chats.map((chat) => (
                         <div onClick={() => handleChangeChat(chat.id)} 
