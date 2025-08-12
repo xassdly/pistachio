@@ -67,7 +67,7 @@ export default function Login () {
                     </button>
                     <div className="flex justify-center text-[#9F9FF8] text-sm gap-6 mb-4">
                         <button className="cursor-pointer hover:text-[#4E4ED8]" onClick={() => router.push('/signup')}>Sign Up</button>
-                        <button className="cursor-pointer hover:text-[#4E4ED8]">Forgot Password</button>
+                        <button className="cursor-pointer hover:text-[#4E4ED8]" onClick={() => router.push('/forgot-password')}>Forgot Password</button>
                     </div>
                     <div className="mb-4 flex justify-center">
                         or
