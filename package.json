@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "echo \"--- VERCEL BUILD ENV --- NEXTAUTH_URL: $NEXTAUTH_URL, DATABASE_URL_EXISTS: ${DATABASE_URL:+true}\" && next build",
     "start": "next start",
     "lint": "next lint",
     "debug:tailwind": "tailwindcss -i ./styles/globals.css -o ./out.css --config ./tailwind.config.js --watch",
