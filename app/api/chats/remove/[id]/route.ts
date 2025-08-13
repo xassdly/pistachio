@@ -2,13 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 
-interface DeleteChatContext {
-  params: {
-    id: string;
-  };
-}
-
-export async function DELETE(_req: Request, context: DeleteChatContext) {
+export async function DELETE(_req: Request, context: any) {
   try {
     const user = await getCurrentUser();
 
