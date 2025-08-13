@@ -4,11 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "echo \"--- VERCEL BUILD ENV --- NEXTAUTH_URL: $NEXTAUTH_URL, DATABASE_URL_EXISTS: ${DATABASE_URL:+true}\" && next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "debug:tailwind": "tailwindcss -i ./styles/globals.css -o ./out.css --config ./tailwind.config.js --watch",
-    "postinstall": "prisma generate"
+    "debug:tailwind": "tailwindcss -i ./styles/globals.css -o ./out.css --config ./tailwind.config.js --watch"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
