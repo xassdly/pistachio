@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+interface DeleteChatContext {
+  params: {
+    id: string;
+  };
+}
+
+export async function DELETE(_req: Request, context: DeleteChatContext) {
   try {
     const user = await getCurrentUser();
 
@@ -10,7 +16,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const chatId = Number(params.id);
+    const chatId = Number(context.params.id);
     if (Number.isNaN(chatId)) {
       return NextResponse.json({ error: "Invalid chat ID" }, { status: 400 });
     }
